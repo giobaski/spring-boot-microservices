@@ -4,13 +4,15 @@ public class Movie {
 
     private String movieId;
     private String name;
+    private String overview;
 
     public Movie() {
     }
 
-    public Movie(String movieId, String name) {
+    public Movie(String movieId, String name, String overview) {
         this.movieId = movieId;
         this.name = name;
+        this.overview = overview;
     }
 
     public String getMovieId() {
@@ -27,5 +29,12 @@ public class Movie {
 
     public void setName(String name) {
         this.name = name;
+    }
+    public String getOverview() {
+        return overview;
+    }
+
+    public void setDescription(String overview) {
+        this.overview = overview;
     }
 }
