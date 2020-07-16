@@ -1,8 +1,9 @@
 package ge.baski.moviecatalogservice.resources;
 
 import ge.baski.moviecatalogservice.models.CatalogItem;
-import ge.baski.moviecatalogservice.models.Movie;
 import ge.baski.moviecatalogservice.models.UserRating;
+import ge.baski.moviecatalogservice.services.MovieInfo;
+import ge.baski.moviecatalogservice.services.UserRatingInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,6 +20,13 @@ public class MovieCatalogResource {
     @Autowired
     private RestTemplate restTemplate;
 
+    @Autowired
+    MovieInfo movieInfo;
+
+    @Autowired
+    UserRatingInfo userRatingInfo;
+
+
 //    @Autowired
 //    WebClient.Builder webClientBuilder;
 
@@ -27,20 +35,18 @@ public class MovieCatalogResource {
 
     @RequestMapping("/{userId}")
     public List<CatalogItem> getCatalog(@PathVariable("userId") String userId) {
+        //get user's movie ratings from ratings-data-service using getUserRatin() method
+        // we split into this two method for using separate fallbacks on each call if any API service is down
+        //API call I. to ratings-data-service
+        UserRating ratings = userRatingInfo.getUserRating(userId);
 
-        UserRating ratings = restTemplate.getForObject("http://ratings-data-service/ratingsdata/user/" + userId, UserRating.class);
-
+        //API Call II to Movie-info-service
         return ratings.getUserRating().stream()
-                .map(rating -> {
-                    // For each movie ID, call movie-info-service and get details
-                    Movie movie = restTemplate.getForObject("http://movie-info-service/movies/" + rating.getMovieId(), Movie.class);
-                    // Put them all together
-                    System.out.println("Desct" + movie.getOverview());
-                    return new CatalogItem(movie.getName(),movie.getOverview(), rating.getRating());
-                })
+                .map(rating -> movieInfo.getCatalogItem(rating))
                 .collect(Collectors.toList());
     }
-}
+
+}//endOfClass
 
 /*
 Alternative WebClient way
